@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+boto3
+redis
+prometheus-fastapi-instrumentator
+python-dotenv
+httpx
+pytest
