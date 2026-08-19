@@ -1,5 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from datetime import datetime, UTC
+from app.costs import get_monthly_summary, get_cost_breakdown, get_cost_history
+
+# RUNNING server: uvicorn app.main:app --reload
 
 app = FastAPI(
     title="AWS Cost Tracker",
@@ -20,3 +23,27 @@ def get_version():
     return {
         "version": "0.0.1"
     }
+
+@app.get("/costs/summary")
+def cost_summary():
+    try:
+       return get_monthly_summary()
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=str(e))
+
+@app.get("/costs/breakdown")
+def cost_breakdown():
+    try:
+       return get_cost_breakdown()
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=str(e))
+
+
+
+@app.get("/costs/history")
+def cost_history():
+    try:
+       return get_cost_history()
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=str(e))
+
