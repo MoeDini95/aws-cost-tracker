@@ -15,15 +15,17 @@ def get_monthly_summary():
     client = get_cost_client()
     start, end = get_current_month_dates()
 
-    response = client.get_cost_and_usage(
-        TimePeriod ={
-            'Start': start,
-            'End': end,
-        },
-        Granularity='MONTHLY',
-        Metrics=['UnblendedCost']
-    )
+    try: 
+        response = client.get_cost_and_usage(
+            TimePeriod= {'Start': start, 'End': end},
+            Granularity= 'MONTHLY',
+            Metrics=['UnblendedCost']
 
+        )
+    except Exception as e: 
+        raise Exception(f"Failed to fetch cost data: {str(e)}")
+
+    
     result = response['ResultsByTime'][0]
     amount = float(result['Total']['UnblendedCost']['Amount'])
     unit = result['Total']['UnblendedCost']['Unit']
@@ -39,20 +41,25 @@ def get_cost_breakdown():
     client = get_cost_client()
     start, end = get_current_month_dates()
 
-    response = client.get_cost_and_usage(
-        TimePeriod={
-            'Start': start,
-            'End': end
-        },
-        Granularity='MONTHLY',
-        Metrics=['UnblendedCost'],
-        GroupBy=[
-            {
-                'Type': 'DIMENSION',
-                'Key': 'SERVICE'
-            }
-        ]
-    )
+    try: 
+    
+        response = client.get_cost_and_usage(
+            TimePeriod={
+                'Start': start,
+                'End': end
+            },
+            Granularity='MONTHLY',
+            Metrics=['UnblendedCost'],
+           GroupBy=[
+               {
+                   'Type': 'DIMENSION',
+                   'Key': 'SERVICE'
+               } 
+           ]
+      )
+
+    except Exception as e:
+      raise Exception(f"Failed to fetch Cost breakdown: {str(e)}")
 
     results = response['ResultsByTime'][0]['Groups']
 
@@ -79,17 +86,23 @@ def get_cost_history():
     client = get_cost_client()
     start, end = get_current_month_dates()
 
-    response = client.get_cost_and_usage(
-        TimePeriod ={
+
+    try: 
+
+        response = client.get_cost_and_usage(
+         TimePeriod ={
             'Start': start,
             'End': end
-        },
+         },
 
 
-        Granularity= 'DAILY',
-        Metrics= ['UnblendedCost']
+         Granularity= 'DAILY',
+         Metrics= ['UnblendedCost']
 
-    )
+     )
+
+    except Exception as e:
+     raise Exception(f"Failed to fetch Cost History: {str(e)}")
 
     results = response['ResultsByTime']
 
