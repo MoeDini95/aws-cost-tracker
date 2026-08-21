@@ -1,0 +1,18 @@
+services:
+  api:
+    build:  .
+    ports:
+      - "8000:8000"
+    environment:
+      - AWS_DEFAULT_REGION=us-east-1
+    volumes:
+      - ~/.aws:/root/.aws:ro
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - api
