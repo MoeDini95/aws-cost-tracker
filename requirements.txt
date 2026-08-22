@@ -6,3 +6,4 @@ prometheus-fastapi-instrumentator
 python-dotenv
 httpx
 pytest
+moto[ce]
