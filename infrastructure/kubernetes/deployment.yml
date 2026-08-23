@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aws-cost-tracker
+  labels:
+    app: aws-cost-tracker
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: aws-cost-tracker
+  template:
+    metadata:
+      labels:
+        app: aws-cost-tracker
+    spec:
+      containers:
+        - name: aws-cost-tracker
+          image: ghcr.io/moedini95/aws-cost-tracker:latest
+          ports:
+            - containerPort: 8000

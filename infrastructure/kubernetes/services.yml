@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: aws-cost-tracker
+  labels:
+    app: aws-cost-tracker
+spec:
+  selector:
+    app: aws-cost-tracker
+  ports:
+    - port: 80
+      targetPort: 8000
+  type: ClusterIP
