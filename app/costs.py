@@ -1,6 +1,13 @@
 from datetime import datetime, UTC
 import boto3
+from prometheus_client import Counter
 
+
+cost_explorer_calls = Counter(
+    'cost_explorer_api_calls_total',
+    'Total Number of AWS Cost Explorer API calls',
+    ['endpoint']
+)
 
 def get_cost_client():
     return boto3.client('ce', region_name='us-east-1')
@@ -15,7 +22,9 @@ def get_monthly_summary():
     client = get_cost_client()
     start, end = get_current_month_dates()
 
+
     try:
+        cost_explorer_calls.labels(endpoint="/costs/summary").inc()
         response = client.get_cost_and_usage(
             TimePeriod= {'Start': start, 'End': end},
             Granularity= 'MONTHLY',
@@ -42,7 +51,7 @@ def get_cost_breakdown():
     start, end = get_current_month_dates()
 
     try:
-
+        cost_explorer_calls.labels(endpoint="/costs/breakdown").inc()
         response = client.get_cost_and_usage(
             TimePeriod={
                 'Start': start,
@@ -88,7 +97,7 @@ def get_cost_history():
 
 
     try:
-
+        cost_explorer_calls.labels(endpoint="/costs/history").inc()
         response = client.get_cost_and_usage(
          TimePeriod ={
             'Start': start,
