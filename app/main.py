@@ -1,5 +1,6 @@
 from datetime import datetime, UTC
 from fastapi import FastAPI, HTTPException
+from prometheus_fastapi_instrumentator import Instrumentator
 from app.costs import get_monthly_summary, get_cost_breakdown, get_cost_history
 
 app = FastAPI(
@@ -7,6 +8,8 @@ app = FastAPI(
     description="Real-Time AWS Infrastructure cost monitoring dashboard",
     version="0.0.1"
 )
+
+Instrumentator().instrument(app).expose(app)
 
 @app.get("/health")
 def health_check():
