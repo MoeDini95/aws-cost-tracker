@@ -43,6 +43,7 @@ jobs:
           format: 'table'
           exit-code: '0'
           severity: 'CRITICAL,HIGH'
+          trivyignores: .trivyignore
 
       - name: Build and push docker image
         uses: docker/build-push-action@v5
@@ -58,3 +59,4 @@ jobs:
           format: 'table'
           exit-code: '1'
           severity: 'CRITICAL,HIGH'
+          trivyignores: .trivyignore

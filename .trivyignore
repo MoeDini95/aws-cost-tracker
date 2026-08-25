@@ -1,1 +1,4 @@
-# Deferred fix - no patch available yet for perl-Archive-Tar DoS CVE-2026-9538
+# Deferred fix - no patch available yet for perl-Archive-Tar DoS
+CVE-2026-9538
+# Deferred fix - Storable deserialization signed integer overflow
+CVE-2026-57433
