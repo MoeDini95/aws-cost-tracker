@@ -1,0 +1,27 @@
+# config for the application deployment
+replicaCount: 2
+
+image:
+  repository: ghcr.io/moedini95/aws-cost-tracker
+  tag: latest
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8000
+
+ingress:
+  enabled: true
+  className: nginx
+  host: localhost
+
+# Resource allocations for the container
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
