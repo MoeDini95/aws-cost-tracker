@@ -3,4 +3,5 @@ disable=
     missing-module-docstring,
     missing-function-docstring,
     broad-exception-raised,
-    raise-missing-from
+    raise-missing-from,
+    import-error
