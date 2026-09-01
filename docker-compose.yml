@@ -1,6 +1,6 @@
 services:
   api:
-    build:  .
+    image: ghcr.io/moedini95/aws-cost-tracker:latest
     ports:
       - "8000:8000"
     environment:
