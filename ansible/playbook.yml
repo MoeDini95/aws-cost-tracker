@@ -1,0 +1,80 @@
+---
+- name: Configure AWS Cost Tracker Server
+  hosts: webservers
+  become: true
+
+  tasks:
+    - name: Update all packages
+      yum:
+        name: "*"
+        state: latest
+
+    - name: Install Docker
+      yum:
+        name: docker
+        state: present
+
+    - name: Install Git
+      yum:
+        name: git
+        state: present
+
+    - name: Start Docker
+      service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Add ec2-user to docker group
+      user:
+        name: ec2-user
+        groups: docker
+        append: true
+
+    - name: Install Docker Compose
+      get_url:
+        url: https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: '0755'
+
+    - name: Create app directory
+      file:
+        path: /home/ec2-user/aws-cost-tracker
+        state: directory
+        owner: ec2-user
+        group: ec2-user
+
+    - name: Copy docker-compose file
+      copy:
+        src: ../docker-compose.yml
+        dest: /home/ec2-user/aws-cost-tracker/docker-compose.yml
+        owner: ec2-user
+        group: ec2-user
+
+    - name: Copy nginx config
+      copy:
+        src: ../nginx.conf
+        dest: /home/ec2-user/aws-cost-tracker/nginx.conf
+        owner: ec2-user
+        group: ec2-user
+        mode: '0644'
+
+    - name: Copy monitoring directory
+      copy:
+        src: ../monitoring/
+        dest: /home/ec2-user/aws-cost-tracker/monitoring
+        owner: ec2-user
+        group: ec2-user
+
+    - name: Pull Docker image from GHCR
+      docker_image:
+        name: ghcr.io/moedini95/aws-cost-tracker
+        tag: latest
+        source: pull
+
+    - name: Start app with Docker Compose
+      shell:
+        cmd: docker-compose up -d
+        chdir: /home/ec2-user/aws-cost-tracker
+      become_user: ec2-user
+
