@@ -1,5 +1,6 @@
 from datetime import datetime, UTC
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
@@ -9,10 +10,10 @@ from opentelemetry.sdk.resources import Resource, SERVICE_NAME
 from prometheus_fastapi_instrumentator import Instrumentator
 from app.costs import get_monthly_summary, get_cost_breakdown, get_cost_history
 
-#OpenTelemetry Config
+# OpenTelemetry Config
 resource = Resource.create({SERVICE_NAME: "aws-cost-tracker"})
 provider = TracerProvider(resource=resource)
-otlp_exporter = OTLPSpanExporter(endpoint= "http://jaeger:4317", insecure=True)
+otlp_exporter = OTLPSpanExporter(endpoint="http://jaeger:4317", insecure=True)
 provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
 trace.set_tracer_provider(provider)
 
@@ -20,6 +21,18 @@ app = FastAPI(
     title="AWS Cost Tracker",
     description="Real-Time AWS Infrastructure cost monitoring dashboard",
     version="0.0.1"
+)
+
+# CORS — allow dashboard subdomain to call the API
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://dashboard.md-95.com",
+        "http://localhost:3000",   # local dev
+    ],
+    allow_credentials=False,
+    allow_methods=["GET"],
+    allow_headers=["*"],
 )
 
 Instrumentator().instrument(app).expose(app)
@@ -52,7 +65,6 @@ def cost_breakdown():
         return get_cost_breakdown()
     except Exception as e:
         raise HTTPException(status_code=503, detail=str(e))
-
 
 @app.get("/costs/history")
 def cost_history():
