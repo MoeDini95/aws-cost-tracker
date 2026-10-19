@@ -72,3 +72,4 @@ def cost_history():
         return get_cost_history()
     except Exception as e:
         raise HTTPException(status_code=503, detail=str(e))
+
