@@ -2,7 +2,7 @@
 
 set -e
 
-INSTANCE_ID="i-05d0473559e081aa0"
+INSTANCE_ID="i-0f6a7d02ec78aea52"
 
 echo "Stopping EC2 instance..."
 

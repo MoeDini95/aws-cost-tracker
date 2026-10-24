@@ -29,3 +29,15 @@ resource "aws_route53_hosted_zone_dnssec" "main" {
   hosted_zone_id = data.aws_route53_zone.main.zone_id
   depends_on     = [aws_route53_key_signing_key.main]
 }
+
+resource "aws_route53_record" "dashboard" {
+  zone_id = data.aws_route53_zone.main.zone_id
+  name    = "dashboard.md-95.com"
+  type    = "A"
+
+  alias {
+    name                   = aws_cloudfront_distribution.dashboard.domain_name
+    zone_id                = aws_cloudfront_distribution.dashboard.hosted_zone_id
+    evaluate_target_health = false
+  }
+}

@@ -41,3 +41,23 @@ resource "aws_iam_instance_profile" "ec2" {
   name = "ec2_profile"
   role = aws_iam_role.ec2.name
 }
+
+# Route 53 update permission for DNS auto-update script
+resource "aws_iam_role_policy" "ec2_route53_dns" {
+  name = "${var.project_name}-ec2-route53-dns"
+  role = aws_iam_role.ec2.name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "route53:ChangeResourceRecordSets",
+          "route53:ListHostedZonesByName"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}

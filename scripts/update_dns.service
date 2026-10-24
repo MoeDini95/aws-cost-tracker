@@ -1,0 +1,11 @@
+[Unit]
+Description=Update Route53 DNS record with current EC2 public IP
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/update_dns.sh
+
+[Install]
+WantedBy=multi-user.target

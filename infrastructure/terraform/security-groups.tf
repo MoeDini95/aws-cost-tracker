@@ -42,6 +42,14 @@ resource "aws_security_group" "ec2" {
 
   }
 
+  ingress {
+    description = "FastAPI port inbound"
+    from_port   = 8000
+    to_port     = 8000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   tags = {
     Name    = "${var.project_name}-sg"
     Project = var.project_name

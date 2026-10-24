@@ -15,6 +15,9 @@
 
 AWS Cost Tracker is a full-stack cloud-native application that monitors and visualizes AWS infrastructure spending in real time. Built as a portfolio project to demonstrate end-to-end DevOps engineering — from API development to cloud deployment, observability, and security.
 
+**Live API:** https://costtracker.md-95.com/health
+**API Docs:** https://costtracker.md-95.com/docs
+
 ---
 ## Architecture
 
