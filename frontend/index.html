@@ -1,0 +1,519 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AWS Cost Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+
+<style>
+:root {
+  --bg:           #0d1117;
+  --surface:      #161b22;
+  --surface-2:    #21262d;
+  --border:       rgba(255,255,255,0.08);
+  --fg:           #e6edf3;
+  --fg-muted:     #7d8590;
+  --fg-dim:       #484f58;
+  --accent:       #ff9900;
+  --accent-dim:   rgba(255,153,0,0.12);
+  --accent-line:  rgba(255,153,0,0.35);
+  --blue:         #3987e5;
+  --blue-dim:     rgba(57,135,229,0.15);
+  --good:         #3fb950;
+  --warn:         #d29922;
+  --grid:         rgba(255,255,255,0.04);
+  --radius:       10px;
+  --font-ui:      'Inter', system-ui, -apple-system, sans-serif;
+  --font-data:    'JetBrains Mono', 'Courier New', monospace;
+  color-scheme:   dark;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-ui);
+  background: var(--bg);
+  color: var(--fg);
+  padding: 24px 20px;
+  min-height: 100%;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+.header-logo {
+  width: 28px; height: 28px;
+  background: var(--accent);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+}
+.header-logo svg { width: 16px; height: 16px; fill: #0d1117; }
+.header h1 {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+}
+.header-sub {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--fg-muted);
+  font-family: var(--font-data);
+}
+.header-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--good);
+  display: inline-block;
+  margin-right: 5px;
+  box-shadow: 0 0 6px var(--good);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 16px;
+}
+@media (max-width: 640px) {
+  .grid { grid-template-columns: 1fr; }
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  min-width: 0;
+}
+.card-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-label::before {
+  content: '';
+  display: block;
+  width: 3px; height: 12px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+.card-hero {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 20px;
+}
+@media (max-width: 640px) { .card-hero { grid-template-columns: 1fr; } }
+
+.hero-value {
+  font-family: var(--font-data);
+  font-size: 52px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+}
+.hero-currency {
+  font-size: 28px;
+  color: var(--fg-muted);
+  vertical-align: super;
+  margin-right: 2px;
+}
+.hero-period {
+  font-size: 13px;
+  color: var(--fg-muted);
+  margin-top: 6px;
+}
+.hero-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-data);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  margin-top: 8px;
+}
+.delta-up   { color: var(--warn); background: rgba(210,153,34,0.12); }
+.delta-down { color: var(--good); background: rgba(63,185,80,0.12); }
+
+.hero-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 160px;
+}
+@media (max-width: 640px) { .hero-meta { flex-direction: row; flex-wrap: wrap; } }
+
+.meta-stat {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.meta-stat-label { font-size: 11px; color: var(--fg-muted); margin-bottom: 4px; }
+.meta-stat-value {
+  font-family: var(--font-data);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.bar-list { display: flex; flex-direction: column; gap: 12px; }
+.bar-row { display: grid; grid-template-columns: 90px 1fr 52px; align-items: center; gap: 8px; }
+.bar-name { font-size: 12px; color: var(--fg-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar-track {
+  height: 8px;
+  background: var(--surface-2);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--blue);
+  transition: width 0.6s cubic-bezier(0.16,1,0.3,1);
+  position: relative;
+}
+.bar-fill::after {
+  content: '';
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: rgba(255,255,255,0.3);
+  border-radius: 0 4px 4px 0;
+}
+.bar-fill.top { background: var(--accent); }
+.bar-val {
+  font-family: var(--font-data);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.bar-row { position: relative; cursor: default; }
+.bar-row:hover .bar-name { color: var(--fg); }
+.bar-row:hover .bar-fill { filter: brightness(1.2); }
+
+.chart-wrap { position: relative; width: 100%; }
+#trendChart { width: 100%; display: block; overflow: visible; }
+
+.tooltip {
+  position: absolute;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 12px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s;
+  white-space: nowrap;
+  z-index: 10;
+}
+.tooltip.visible { opacity: 1; }
+.tooltip-date { color: var(--fg-muted); margin-bottom: 2px; font-size: 11px; }
+.tooltip-val { font-family: var(--font-data); font-weight: 600; color: var(--accent); }
+
+.footer {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.footer-note { font-size: 11px; color: var(--fg-dim); }
+.footer-api { font-size: 11px; font-family: var(--font-data); color: var(--fg-dim); }
+.footer-api a { color: var(--blue); text-decoration: none; }
+.footer-api a:hover { text-decoration: underline; }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: var(--blue-dim);
+  color: var(--blue);
+}
+</style>
+
+<header class="header">
+  <div class="header-logo">
+    <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+  </div>
+  <h1>AWS Cost Tracker</h1>
+  <div class="header-sub">
+    <span class="header-dot"></span>Live · costtracker.md-95.com
+  </div>
+</header>
+
+<div class="grid">
+
+  <div class="card card-hero">
+    <div>
+      <div class="card-label">Monthly Spend — October 2026</div>
+      <div class="hero-value"><span class="hero-currency">$</span><span id="heroVal">0.00</span></div>
+      <div class="hero-period">Oct 1 – Oct 12, 2026 · MTD</div>
+      <div class="hero-delta delta-up" id="heroDelta">↑ 8.3% vs last month</div>
+    </div>
+    <div class="hero-meta">
+      <div class="meta-stat">
+        <div class="meta-stat-label">Forecasted (EOM)</div>
+        <div class="meta-stat-value" id="forecastVal">$0.00</div>
+      </div>
+      <div class="meta-stat">
+        <div class="meta-stat-label">Daily Average</div>
+        <div class="meta-stat-value" id="avgVal">$0.00</div>
+      </div>
+      <div class="meta-stat">
+        <div class="meta-stat-label">Services Active</div>
+        <div class="meta-stat-value">7</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Cost by Service</div>
+    <div class="bar-list" id="barList"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Daily Spend Trend</div>
+    <div class="chart-wrap">
+      <svg id="trendChart" viewBox="0 0 360 160" preserveAspectRatio="none"></svg>
+      <div class="tooltip" id="tooltip">
+        <div class="tooltip-date" id="ttDate"></div>
+        <div class="tooltip-val" id="ttVal"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer class="footer">
+  <div class="footer-note">Data sourced from AWS Cost Explorer API · Refreshed on page load</div>
+  <div class="footer-api">
+    API: <a href="https://costtracker.md-95.com/docs" target="_blank">costtracker.md-95.com/docs</a>
+    &nbsp;·&nbsp;
+    <span class="badge">v1.1.0</span>
+  </div>
+</footer>
+
+<script>
+const API_BASE = 'https://costtracker.md-95.com:';
+
+function setLoading(on) {
+  const dot = document.querySelector('.header-dot');
+  if (on) {
+    dot.style.background = 'var(--warn)';
+    dot.style.boxShadow  = '0 0 6px var(--warn)';
+  } else {
+    dot.style.background = 'var(--good)';
+    dot.style.boxShadow  = '0 0 6px var(--good)';
+  }
+}
+
+function setError(msg) {
+  const dot = document.querySelector('.header-dot');
+  dot.style.background = '#e34948';
+  dot.style.boxShadow  = '0 0 6px #e34948';
+  document.querySelector('.header-sub').innerHTML =
+    `<span style="color:#e34948">⚠ ${msg}</span>`;
+}
+
+async function loadDashboard() {
+  setLoading(true);
+  try {
+    const [summaryRes, breakdownRes, historyRes] = await Promise.all([
+      fetch(`${API_BASE}/costs/summary`),
+      fetch(`${API_BASE}/costs/breakdown`),
+      fetch(`${API_BASE}/costs/history`)
+    ]);
+
+    if (!summaryRes.ok || !breakdownRes.ok || !historyRes.ok) {
+      throw new Error('API returned non-200');
+    }
+
+    const SUMMARY   = await summaryRes.json();
+    const breakdown = await breakdownRes.json();
+    const history   = await historyRes.json();
+
+    const BREAKDOWN = Array.isArray(breakdown) ? breakdown : (breakdown.services || breakdown.items || []);
+    const HISTORY   = Array.isArray(history)   ? history   : (history.daily    || history.items   || []);
+
+    renderHero(SUMMARY);
+    renderBars(BREAKDOWN);
+    renderLine(HISTORY);
+    setLoading(false);
+
+    const now = new Date().toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit' });
+    document.querySelector('.header-sub').innerHTML =
+      `<span class="header-dot"></span>Live · costtracker.md-95.com · updated ${now}`;
+
+  } catch (err) {
+    console.error('Dashboard load failed:', err);
+    setError('API unreachable — showing cached data');
+  }
+}
+
+function renderHero(SUMMARY) {
+  document.getElementById('heroVal').textContent     = Number(SUMMARY.total_cost).toFixed(2);
+  document.getElementById('forecastVal').textContent = '$' + Number(SUMMARY.forecasted_eom).toFixed(2);
+  document.getElementById('avgVal').textContent      = '$' + Number(SUMMARY.daily_avg).toFixed(2);
+  const delta = document.getElementById('heroDelta');
+  const pct   = SUMMARY.vs_last_month_pct;
+  delta.textContent = (pct >= 0 ? '↑ ' : '↓ ') + Math.abs(pct).toFixed(1) + '% vs last month';
+  delta.className   = 'hero-delta ' + (pct >= 0 ? 'delta-up' : 'delta-down');
+  if (SUMMARY.period) {
+    document.querySelector('.hero-period').textContent = SUMMARY.period + ' · MTD';
+  }
+  if (SUMMARY.active_services != null) {
+    document.querySelectorAll('.meta-stat-value')[2].textContent = SUMMARY.active_services;
+  }
+}
+
+function renderBars(BREAKDOWN) {
+  const max  = Math.max(...BREAKDOWN.map(d => d.cost));
+  const list = document.getElementById('barList');
+  list.innerHTML = '';
+  BREAKDOWN.forEach((d, i) => {
+    const pct = (d.cost / max * 100).toFixed(1);
+    const row = document.createElement('div');
+    row.className = 'bar-row';
+    row.innerHTML = `
+      <span class="bar-name" title="${d.service}">${d.service}</span>
+      <div class="bar-track">
+        <div class="bar-fill${i === 0 ? ' top' : ''}" style="width:0%" data-pct="${pct}"></div>
+      </div>
+      <span class="bar-val">$${Number(d.cost).toFixed(2)}</span>
+    `;
+    list.appendChild(row);
+  });
+  requestAnimationFrame(() => {
+    document.querySelectorAll('.bar-fill').forEach(el => {
+      el.style.width = el.dataset.pct + '%';
+    });
+  });
+}
+
+function renderLine(HISTORY) {
+  const svg  = document.getElementById('trendChart');
+  const W = 360, H = 160;
+  const pad  = { t: 12, r: 8, b: 28, l: 36 };
+  const cw   = W - pad.l - pad.r;
+  const ch   = H - pad.t - pad.b;
+  const vals = HISTORY.map(d => Number(d.cost));
+  const minV = 0;
+  const maxV = Math.ceil(Math.max(...vals) * 1.25 * 10) / 10;
+  const n    = vals.length;
+
+  const sx = i => pad.l + (i / (n - 1)) * cw;
+  const sy = v => pad.t + ch - ((v - minV) / (maxV - minV)) * ch;
+
+  const pts  = vals.map((v, i) => [sx(i), sy(v)]);
+  const d    = pts.map((p, i) => (i === 0 ? `M${p[0]},${p[1]}` : `L${p[0]},${p[1]}`)).join(' ');
+  const areaD = `${d} L${pts[pts.length-1][0]},${pad.t+ch} L${pts[0][0]},${pad.t+ch} Z`;
+
+  let yTicks = '';
+  for (let i = 0; i <= 4; i++) {
+    const v = minV + (maxV - minV) * (i / 4);
+    const y = sy(v);
+    yTicks += `<line x1="${pad.l}" y1="${y}" x2="${W-pad.r}" y2="${y}" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>`;
+    yTicks += `<text x="${pad.l-6}" y="${y+4}" text-anchor="end" font-size="9" fill="#7d8590" font-family="'JetBrains Mono',monospace">$${v.toFixed(1)}</text>`;
+  }
+
+  let xLabels = '';
+  HISTORY.forEach((d, i) => {
+    if (i % 3 === 0 || i === n - 1) {
+      xLabels += `<text x="${sx(i)}" y="${H-4}" text-anchor="middle" font-size="9" fill="#7d8590" font-family="'Inter',sans-serif">${d.date.replace('Oct ','')}</text>`;
+    }
+  });
+
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#ff9900" stop-opacity="0.18"/>
+        <stop offset="100%" stop-color="#ff9900" stop-opacity="0"/>
+      </linearGradient>
+      <clipPath id="chartClip">
+        <rect x="${pad.l}" y="${pad.t}" width="${cw}" height="${ch}"/>
+      </clipPath>
+    </defs>
+    ${yTicks}
+    <g clip-path="url(#chartClip)">
+      <path d="${areaD}" fill="url(#areaGrad)"/>
+      <path d="${d}" fill="none" stroke="#ff9900" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    ${xLabels}
+    <g id="hoverDot" opacity="0">
+      <circle r="5" fill="#0d1117" stroke="#ff9900" stroke-width="2"/>
+      <line id="hoverLine" stroke="rgba(255,153,0,0.3)" stroke-width="1" stroke-dasharray="3,3"/>
+    </g>
+  `;
+
+  const wrap    = svg.parentElement;
+  const tooltip = document.getElementById('tooltip');
+  const ttDate  = document.getElementById('ttDate');
+  const ttVal   = document.getElementById('ttVal');
+  const dot     = document.getElementById('hoverDot');
+  const dotCirc = dot.querySelector('circle');
+  const hLine   = document.getElementById('hoverLine');
+
+  svg.addEventListener('mousemove', e => {
+    const rect   = svg.getBoundingClientRect();
+    const mouseX = (e.clientX - rect.left) * (W / rect.width);
+    if (mouseX < pad.l || mouseX > W - pad.r) { hideTooltip(); return; }
+    const frac = (mouseX - pad.l) / cw;
+    const idx  = Math.min(n-1, Math.max(0, Math.round(frac * (n-1))));
+    const px   = sx(idx);
+    const py   = sy(vals[idx]);
+    dotCirc.setAttribute('cx', px); dotCirc.setAttribute('cy', py);
+    hLine.setAttribute('x1', px); hLine.setAttribute('y1', py);
+    hLine.setAttribute('x2', px); hLine.setAttribute('y2', pad.t+ch);
+    dot.setAttribute('opacity', '1');
+    const wrapRect = wrap.getBoundingClientRect();
+    ttDate.textContent = HISTORY[idx].date;
+    ttVal.textContent  = '$' + vals[idx].toFixed(2);
+    tooltip.style.left = (e.clientX - wrapRect.left + 12) + 'px';
+    tooltip.style.top  = (e.clientY - wrapRect.top  - 36) + 'px';
+    tooltip.classList.add('visible');
+  });
+
+  svg.addEventListener('mouseleave', hideTooltip);
+
+  function hideTooltip() {
+    dot.setAttribute('opacity', '0');
+    tooltip.classList.remove('visible');
+  }
+}
+
+loadDashboard();
+</script>
+
+</head>
+</body>
+</html>
