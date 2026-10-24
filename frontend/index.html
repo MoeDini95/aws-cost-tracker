@@ -324,7 +324,7 @@ body {
 </footer>
 
 <script>
-const API_BASE = 'https://costtracker.md-95.com:';
+const API_BASE = 'https://costtracker.md-95.com'
 
 function setLoading(on) {
   const dot = document.querySelector('.header-dot');
@@ -362,10 +362,10 @@ async function loadDashboard() {
     const breakdown = await breakdownRes.json();
     const history   = await historyRes.json();
 
-    const BREAKDOWN = Array.isArray(breakdown) ? breakdown : (breakdown.services || breakdown.items || []);
-    const HISTORY   = Array.isArray(history)   ? history   : (history.daily    || history.items   || []);
+    const BREAKDOWN = Array.isArray(breakdown) ? breakdown : (breakdown.breakdown || breakdown.services || breakdown.items || []);
+    const HISTORY   = Array.isArray(history)   ? history   : (history.daily_costs || history.daily || history.items || []);
 
-    renderHero(SUMMARY);
+    renderHero(SUMMARY, BREAKDOWN, HISTORY);
     renderBars(BREAKDOWN);
     renderLine(HISTORY);
     setLoading(false);
@@ -380,19 +380,21 @@ async function loadDashboard() {
   }
 }
 
-function renderHero(SUMMARY) {
-  document.getElementById('heroVal').textContent     = Number(SUMMARY.total_cost).toFixed(2);
-  document.getElementById('forecastVal').textContent = '$' + Number(SUMMARY.forecasted_eom).toFixed(2);
-  document.getElementById('avgVal').textContent      = '$' + Number(SUMMARY.daily_avg).toFixed(2);
-  const delta = document.getElementById('heroDelta');
-  const pct   = SUMMARY.vs_last_month_pct;
-  delta.textContent = (pct >= 0 ? '↑ ' : '↓ ') + Math.abs(pct).toFixed(1) + '% vs last month';
-  delta.className   = 'hero-delta ' + (pct >= 0 ? 'delta-up' : 'delta-down');
+function renderHero(SUMMARY, BREAKDOWN, HISTORY) {
+  const total = Number(SUMMARY.total_cost);
+  document.getElementById('heroVal').textContent = total.toFixed(2);
+  const daysElapsed = HISTORY && HISTORY.length > 0 ? HISTORY.length : 1;
+  const dailyAvg = total / daysElapsed;
+  document.getElementById('avgVal').textContent = '$' + dailyAvg.toFixed(2);
+  const today = new Date();
+  const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+  document.getElementById('forecastVal').textContent = '$' + (dailyAvg * daysInMonth).toFixed(2);
+  document.getElementById('heroDelta').style.display = 'none';
   if (SUMMARY.period) {
     document.querySelector('.hero-period').textContent = SUMMARY.period + ' · MTD';
   }
-  if (SUMMARY.active_services != null) {
-    document.querySelectorAll('.meta-stat-value')[2].textContent = SUMMARY.active_services;
+  if (BREAKDOWN && BREAKDOWN.length > 0) {
+    document.querySelectorAll('.meta-stat-value')[2].textContent = BREAKDOWN.length;
   }
 }
 
