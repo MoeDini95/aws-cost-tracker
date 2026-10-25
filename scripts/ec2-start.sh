@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 INSTANCE_ID="i-0f6a7d02ec78aea52"
