@@ -35,6 +35,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "cloudtrail" {
     id     = "expire-cloudtrail-logs"
     status = "Enabled"
 
+    filter {}
     expiration {
       days = 90
     }

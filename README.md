@@ -17,6 +17,7 @@ AWS Cost Tracker is a full-stack cloud-native application that monitors and visu
 
 **Live API:** https://costtracker.md-95.com/health
 **API Docs:** https://costtracker.md-95.com/docs
+**Live Dashboard:** https://dashboard.md-95.com
 
 ---
 ## Architecture
@@ -48,6 +49,9 @@ AWS Cost Tracker is a full-stack cloud-native application that monitors and visu
 | Distributed Tracing | OpenTelemetry + Jaeger |
 | Testing | pytest + moto (AWS mocking) |
 | Code Quality | Pylint (10/10) |
+| SSL/TLS | Let's Encrypt + Certbot |
+| CDN + WAF | CloudFront + AWS WAF |
+| Audit Logging | CloudTrail |
 
 ---
 
@@ -212,6 +216,16 @@ Installs Docker, copies app files, pulls image from GHCR, starts full stack.
 ./scripts/ec2-stop.sh    # stop instance to save costs
 ```
 
+
+### Frontend Dashboard (S3 + CloudFront)
+
+Live at: https://dashboard.md-95.com
+
+- Static site hosted on S3 with CloudFront CDN
+- WAF WebACL with AWS managed rules
+- ACM certificate + Route 53 DNS
+- CloudTrail audit logging for all management events
+
 ---
 
 ## Monitoring
@@ -250,6 +264,8 @@ Each `/costs/summary` request shows ~550ms trace — almost entirely AWS Cost Ex
 | v0.6.0 | Phase 7 | Terraform AWS infrastructure |
 | v0.6.1 | Phase 7.5 | Ansible EC2 configuration |
 | v1.0.0 | Phase 8 | Production ready |
+| v1.1.0 | Phase 9 | nginx + HTTPS + DNS auto-update |
+| v1.2.0 | Phase 10 | S3 + CloudFront dashboard + WAF + CloudTrail |
 
 ---
 
