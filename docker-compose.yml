@@ -1,6 +1,7 @@
 services:
   api:
     image: ghcr.io/moedini95/aws-cost-tracker:latest
+    restart: unless-stopped
     ports:
       - "8000:8000"
     environment:
@@ -10,6 +11,7 @@ services:
 
   nginx:
     image: nginx:alpine
+    restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
@@ -21,6 +23,7 @@ services:
 
   prometheus:
     image: prom/prometheus
+    restart: unless-stopped
     ports:
       - "9090:9090"
     volumes:
@@ -33,6 +36,7 @@ services:
 
   grafana:
     image: grafana/grafana
+    restart: unless-stopped
     ports:
       - "3000:3000"
     volumes:
@@ -43,6 +47,7 @@ services:
 
   jaeger:
     image: jaegertracing/all-in-one:latest
+    restart: unless-stopped
     ports:
       - "16686:16686"
       - "4317:4317"
